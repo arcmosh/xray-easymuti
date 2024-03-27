@@ -1,35 +1,44 @@
-uuidSeed=$(curl -sL https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')$(cat /proc/sys/kernel/hostname)$(cat /etc/timezone)
-default_uuid=$(curl -sL https://www.uuidtools.com/api/generate/v3/namespace/ns:dns/name/${uuidSeed} | grep -oP '[^-]{8}-[^-]{4}-[^-]{4}-[^-]{4}-[^-]{12}')
+#!/bin/bash
 
-    # 第2个参数是port
-    port=${2}
-    if [[ -z $port ]]; then
-      port=443
-    fi
+# 获取UUID
+uuid=$(cat /proc/sys/kernel/random/uuid)
 
-    # 第4个参数是UUID
-    uuid=${4}
-    if [[ -z $uuid ]]; then
-        uuid=${default_uuid}
-    fi
+# 将UUID转换为16进制并计算其哈希值
+hash=$(echo -n "$uuid" | md5sum | awk '{print $1}')
+decimal_hash=$((16#$hash))
 
+# 计算端口号（确保在有效范围内）
+vmessport=$((decimal_hash % 63535 + 2000))
+
+# 参数1是UUID时覆盖当前
+if [[ -n ${1} ]]; then
+    uuid=${1}
+fi
+
+# 第2个参数是vmessport
+if [[ -n ${2} ]]; then
+  vmessport=${2}
+fi
+
+# 打印变量值
+echo "UUID: $uuid"
+echo "vmessport: $vmessport"
+
+# 设置默认端口号
+port=443
 
 # 准备工作
 apt update
 apt install -y curl sudo jq qrencode
 
-# Xray官方脚本 安装最新版本
+# 安装Xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 
-# 如果脚本带参数执行的, 要在安装了xray之后再生成默认私钥公钥shortID
-if [[ -n $uuid ]]; then
-  #私钥种子
-  private_key=$(echo -n ${uuid} | md5sum | head -c 32 | base64 -w 0 | tr '+/' '-_' | tr -d '=')
-  #生成私钥公钥
-  tmp_key=$(echo -n ${private_key} | xargs xray x25519 -i)
-  private_key=$(echo ${tmp_key} | awk '{print $3}')
-  public_key=$(echo ${tmp_key} | awk '{print $6}')
-fi
+# 生成私钥公钥
+private_key=$(echo -n ${uuid} | md5sum | head -c 32 | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+tmp_key=$(echo -n ${private_key} | xargs xray x25519 -i)
+private_key=$(echo ${tmp_key} | awk '{print $3}')
+public_key=$(echo ${tmp_key} | awk '{print $6}')
 
 # 打开BBR
 sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
@@ -37,6 +46,10 @@ sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 echo "net.ipv4.tcp_congestion_control = bbr" >>/etc/sysctl.conf
 echo "net.core.default_qdisc = fq" >>/etc/sysctl.conf
 sysctl -p >/dev/null 2>&1
+
+# 打印生成的私钥公钥
+echo "Private Key: $private_key"
+echo "Public Key: $public_key"
 
 # 配置 VLESS_Reality 模式, 需要:端口, UUID, x25519公私钥, 目标网站
 

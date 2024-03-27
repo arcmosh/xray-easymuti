@@ -148,8 +148,13 @@ echo
 echo "---------- Vmess URL ----------"
 temp_url='{"add":"IP","aid":"0","alpn":"","fp":"","host":"","id":"UUID","net":"tcp","path":"","port":"VMESSPORT","ps":"Vmess_IP_TIME","scy":"auto","sni":"","tls":"","type":"","v":"2"}'
 echo ${temp_url}
-o_vmess_url=$(sed -e "s/IP/${ip}/g" -e "s/UUID/${uuid}/g" -e "s/VMESSPORT/${vmessport}/g" -e "s/TIME/$(date +%H%M)/g" <<< "${temp_url}")
-echo "$o_vmess_url"
+o_vmess_url=$(sed -e "s/IP/${ip}/g" \
+                   -e "s/UUID/${uuid}/g" \
+                   -e "s/VMESSPORT/${vmessport}/g" \
+                   -e "s/TIME/$(date +%H%M)/g" <<< "${temp_url}")
+
+# 使用修正后的变量名称进行输出
+echo "${o_vmess_url}"
 
 echo "以上节点信息保存在 ~/_vless_reality_url_ 中"
 

@@ -8,6 +8,8 @@ Xray, VLESS_Reality + Vmess 双协议 极简一键脚本，不罗嗦安装开箱
 首次安装会随机生成一个uuid，之后，vmess的端口号公私钥等都是在此基础上映射而来的。因此只要知道uuid就可以快速恢复配置。
 
 # 一键安装
+
+Debian Ubuntu 肯定没问题其他的系统我没试
 ```
 apt update
 apt install -y curl

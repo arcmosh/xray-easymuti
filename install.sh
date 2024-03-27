@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# fakeSNI
+sni=update.cloud.2d585.cdn.bitdefender.net
+
+# 设置reality端口号
+port=443
+
+# 指纹FingerPrint
+fingerprint="firefox"
+
+# SpiderX
+spiderx=""
+
 # 获取UUID
 uuid=$(cat /proc/sys/kernel/random/uuid)
 
@@ -23,9 +35,6 @@ fi
 # 打印变量值
 echo "UUID: $uuid"
 echo "vmessport: $vmessport"
-
-# 设置默认端口号
-port=443
 
 # 准备工作
 apt update
@@ -52,37 +61,15 @@ echo "Private Key: $private_key"
 echo "Public Key: $public_key"
 
 # 配置 VLESS_Reality 模式, 需要:端口, UUID, x25519公私钥, 目标网站
-
-# 网络栈
-if [[ -z $netstack ]]; then
-  echo
-  echo -e "如果你的小鸡是${magenta}双栈(同时有IPv4和IPv6的IP)${none}，请选择你把Xray搭在哪个'网口'上"
-  echo "如果你不懂这段话是什么意思, 请直接回车"
-  read -p "$(echo -e "Input ${cyan}4${none} for IPv4, ${cyan}6${none} for IPv6:") " netstack
-
-# 本机IP
-    ip=$(curl -4s https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')
-
-# 端口
-port=443
-
-
-# x25519公私钥
-
-
-# ShortID
-
-
-# 目标网站
-domain=
+ip=$(curl ipv4.ip.sb)
 
 # 配置config.json
 cat > /usr/local/etc/xray/config.json <<-EOF
 { // VLESS + Reality
   "log": {
-    "access": "/var/log/xray/access.log",
+    "access": "none",
     "error": "/var/log/xray/error.log",
-    "loglevel": "warning"
+    "loglevel": "error"
   },
   "inbounds": [
     {
@@ -107,7 +94,7 @@ cat > /usr/local/etc/xray/config.json <<-EOF
           "xver": 0,
           "serverNames": ["${domain}"],    // ***
           "privateKey": "${private_key}",    // ***私钥
-          "shortIds": ["${shortid}"]    // ***
+          "shortIds": [""] 
         }
       },
       "sniffing": {
@@ -120,16 +107,12 @@ cat > /usr/local/etc/xray/config.json <<-EOF
     {
       "protocol": "freedom",
       "tag": "direct"
-    },
-    {
-      "protocol": "blackhole",
-      "tag": "block"
     }
   ],
   "dns": {
     "servers": [
       "8.8.8.8",
-      "1.1.1.1",
+      "8.8.4.4",
       "2001:4860:4860::8888",
       "2606:4700:4700::1111",
       "localhost"
@@ -137,52 +120,17 @@ cat > /usr/local/etc/xray/config.json <<-EOF
   },
   "routing": {
     "domainStrategy": "IPIfNonMatch",
-    "rules": [
-      {
-        "type": "field",
-        "ip": ["geoip:private"],
-        "outboundTag": "block"
-      }
-    ]
+    "rules": []
   }
 }
 EOF
 
 # 重启 Xray
-echo
-echo -e "$yellow重启 Xray$none"
-echo "----------------------------------------------------------------"
 service xray restart
 
-# 指纹FingerPrint
-fingerprint="random"
-
-# SpiderX
-spiderx=""
-
-echo
-echo "---------- Xray 配置信息 -------------"
-echo -e "$green ---提示..这是 VLESS Reality 服务器配置--- $none"
-echo -e "$yellow 地址 (Address) = $cyan${ip}$none"
-echo -e "$yellow 端口 (Port) = ${cyan}${port}${none}"
-echo -e "$yellow 用户ID (User ID / UUID) = $cyan${uuid}$none"
-echo -e "$yellow 流控 (Flow) = ${cyan}xtls-rprx-vision${none}"
-echo -e "$yellow 加密 (Encryption) = ${cyan}none${none}"
-echo -e "$yellow 传输协议 (Network) = ${cyan}tcp$none"
-echo -e "$yellow 伪装类型 (header type) = ${cyan}none$none"
-echo -e "$yellow 底层传输安全 (TLS) = ${cyan}reality$none"
-echo -e "$yellow SNI = ${cyan}${domain}$none"
-echo -e "$yellow 指纹 (Fingerprint) = ${cyan}${fingerprint}$none"
-echo -e "$yellow 公钥 (PublicKey) = ${cyan}${public_key}$none"
-echo -e "$yellow ShortId = ${cyan}${shortid}$none"
-echo -e "$yellow SpiderX = ${cyan}${spiderx}$none"
-echo
 echo "---------- VLESS Reality URL ----------"
-if [[ $netstack == "6" ]]; then
-  ip=[$ip]
-fi
 vless_reality_url="vless://${uuid}@${ip}:${port}?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&sni=${domain}&fp=${fingerprint}&pbk=${public_key}&sid=${shortid}&spx=${spiderx}&#VLESS_R_${ip}"
-echo -e "${cyan}${vless_reality_url}${none}"
+echo -e "${vless_reality_url}"
 echo
 sleep 3
 echo "以下两个二维码完全一样的内容"

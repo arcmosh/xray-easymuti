@@ -1,9 +1,3 @@
-# 等待1秒, 避免curl下载脚本的打印与脚本本身的显示冲突, 吃掉了提示用户按回车继续的信息
-sleep 1
-error() {
-    echo -e "输入错误!"
-}
-
 uuidSeed=$(curl -sL https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')$(cat /proc/sys/kernel/hostname)$(cat /etc/timezone)
 default_uuid=$(curl -sL https://www.uuidtools.com/api/generate/v3/namespace/ns:dns/name/${uuidSeed} | grep -oP '[^-]{8}-[^-]{4}-[^-]{4}-[^-]{4}-[^-]{12}')
 
@@ -31,14 +25,10 @@ bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release
 if [[ -n $uuid ]]; then
   #私钥种子
   private_key=$(echo -n ${uuid} | md5sum | head -c 32 | base64 -w 0 | tr '+/' '-_' | tr -d '=')
-
   #生成私钥公钥
   tmp_key=$(echo -n ${private_key} | xargs xray x25519 -i)
   private_key=$(echo ${tmp_key} | awk '{print $3}')
   public_key=$(echo ${tmp_key} | awk '{print $6}')
-
-  #ShortID
-  shortid=$(echo -n ${uuid} | sha1sum | head -c 16)
 fi
 
 # 打开BBR

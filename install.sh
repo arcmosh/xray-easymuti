@@ -29,10 +29,6 @@ decimal_uuid=$((16#$uuid_short))
 # 计算端口号（确保在有效范围内）
 vmessport=$((decimal_uuid % 8000 + 2000)) 
 
-# 打印变量值
-echo "UUID: $uuid"
-echo "vmessport: $vmessport"
-
 # 准备工作
 apt update
 apt install -y curl sudo jq qrencode
@@ -51,11 +47,7 @@ sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
 sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 echo "net.ipv4.tcp_congestion_control = bbr" >>/etc/sysctl.conf
 echo "net.core.default_qdisc = fq" >>/etc/sysctl.conf
-sysctl -p >/dev/null 2>&1
-
-# 打印生成的私钥公钥
-echo "Private Key: $private_key"
-echo "Public Key: $public_key"
+sysctl -p 
 
 # 配置 VLESS_Reality 模式, 需要:端口, UUID, x25519公私钥, 目标网站
 ip=$(curl ipv4.ip.sb)
@@ -152,13 +144,15 @@ o_vmess_url=$(sed -e "s/IP/${ip}/g" \
                    -e "s/VMESSPORT/${vmessport}/g" \
                    -e "s/TIME/$(date +%H%M)/g" <<< "${temp_url}")
 
-vmess_url=$(echo -n "${o_vmess_url}" | base64)
+vmess_url=$(echo -n "${o_vmess_url}" | base64 -w 0)
 
-echo "${vmess_url}"
-
-echo "以上节点信息保存在 ~/_vless_reality_url_ 中"
+echo "vmess://${vmess_url}"
 
 # 节点信息保存到文件中
-echo $vless_reality_url > ~/_vless_reality_url_
+echo $vless_reality_url > ~/_xray_url_
+echo  >> ~/_xray_url_
+echo "vmess://${vmess_url}" >> ~/_xray_url_
 
+echo "以上节点信息保存在 ~/_xray_url_ 中, 用 cat _xray_url_ 查看"
 
+echo "若你重装本机系统，可以使用下面的脚本恢复到相同配置 \n bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh) ${uuid} "

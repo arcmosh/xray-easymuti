@@ -1,4 +1,4 @@
-# xray-vless-reality
+# xray-easymuti
 Xray, VLESS_Reality + Vmess 双协议 极简一键脚本，不罗嗦安装开箱即用。
 
 # 说明 

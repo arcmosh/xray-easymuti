@@ -146,8 +146,8 @@ echo -e "${vless_reality_url}"
 echo
 
 echo "---------- Vmess URL ----------"
-temp_url='{"add":"IP","aid":"0","alpn":"","fp":"","host":"","id":"${uuid}","net":"tcp","path":"","port":"VMESSPORT","ps":"Vmess_${ip}_TIME","scy":"auto","sni":"","tls":"","type":"","v":"2"}'
-echo $temp_url
+temp_url='{"add":"IP","aid":"0","alpn":"","fp":"","host":"","id":"UUID","net":"tcp","path":"","port":"VMESSPORT","ps":"Vmess_IP_TIME","scy":"auto","sni":"","tls":"","type":"","v":"2"}'
+echo ${temp_url}
 O_vmess_url=$(sed -e "s/IP/${ip}/g" -e "s/VMESSPORT/${vmessport}/g" -e "s/TIME/$(date +%H%M)/g" <<< "$temp_url")
 echo -e "$o_vmess_url"
 

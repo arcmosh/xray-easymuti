@@ -1,49 +1,16 @@
 # 等待1秒, 避免curl下载脚本的打印与脚本本身的显示冲突, 吃掉了提示用户按回车继续的信息
 sleep 1
 error() {
-    echo -e "\n$red 输入错误! $none\n"
-}
-
-pause() {
-    read -rsp "$(echo -e "按 $green Enter 回车键 $none 继续....或按 $red Ctrl + C $none 取消.")" -d $'\n'
-    echo
+    echo -e "输入错误!"
 }
 
 uuidSeed=$(curl -sL https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')$(cat /proc/sys/kernel/hostname)$(cat /etc/timezone)
 default_uuid=$(curl -sL https://www.uuidtools.com/api/generate/v3/namespace/ns:dns/name/${uuidSeed} | grep -oP '[^-]{8}-[^-]{4}-[^-]{4}-[^-]{4}-[^-]{12}')
 
-# 执行脚本带参数
-if [ $# -ge 1 ]; then
-    # 第1个参数是搭在ipv4还是ipv6上
-    case ${1} in
-    4)
-        netstack=4
-        ip=$(curl -4s https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')
-        ;;
-    6)
-        netstack=6
-        ip=$(curl -6s https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')
-        ;;    
-    *) # initial
-        ip=$(curl -s https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')
-        if [[ -z $(echo -n ${ip} | sed -E 's/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})//g') ]]; then
-          netstack=4
-        else
-          netstack=6
-        fi
-        ;;    
-    esac
-
     # 第2个参数是port
     port=${2}
     if [[ -z $port ]]; then
       port=443
-    fi
-
-    # 第3个参数是域名
-    domain=${3}
-    if [[ -z $domain ]]; then
-      domain="learn.microsoft.com"
     fi
 
     # 第4个参数是UUID
@@ -52,14 +19,6 @@ if [ $# -ge 1 ]; then
         uuid=${default_uuid}
     fi
 
-    echo -e "$yellow netstack: ${netstack} ${none}"
-    echo -e "$yellow 端口 (Port) = ${cyan}${port}${none}"
-    echo -e "$yellow 用户ID (User ID / UUID) = $cyan${uuid}${none}"
-    echo -e "$yellow SNI = ${cyan}$domain${none}"
-    echo "----------------------------------------------------------------"
-fi
-
-pause
 
 # 准备工作
 apt update

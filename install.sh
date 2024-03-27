@@ -1,19 +1,24 @@
 #!/bin/bash
 
 # fakeSNI
-domain="update.cloud.2d585.cdn.bitdefender.net"
+domain="updates.cdn-apple.com"
 
 # 设置reality端口号
 port=443
 
 # 指纹FingerPrint
-fingerprint="firefox"
+fingerprint="ios"
 
 # SpiderX
 spiderx=""
 
 # 获取UUID
 uuid=$(cat /proc/sys/kernel/random/uuid)
+
+# 参数1是UUID时覆盖当前
+if [[ -n ${1} ]]; then
+    uuid=${1}
+fi
 
 # 将UUID转换为16进制并计算其哈希值
 hash=$(echo -n "$uuid" | md5sum | awk '{print $1}')
@@ -22,15 +27,6 @@ decimal_hash=$((16#$hash))
 # 计算端口号（确保在有效范围内）
 vmessport=$((decimal_hash % 63535 + 2000))
 
-# 参数1是UUID时覆盖当前
-if [[ -n ${1} ]]; then
-    uuid=${1}
-fi
-
-# 第2个参数是vmessport
-if [[ -n ${2} ]]; then
-  vmessport=${2}
-fi
 
 # 打印变量值
 echo "UUID: $uuid"
@@ -65,7 +61,7 @@ ip=$(curl ipv4.ip.sb)
 
 # 配置config.json
 cat > /usr/local/etc/xray/config.json <<-EOF
-{ // VLESS + Reality
+{ 
   "log": {
     "access": "none",
     "error": "/var/log/xray/error.log",
@@ -74,12 +70,12 @@ cat > /usr/local/etc/xray/config.json <<-EOF
   "inbounds": [
     {
       "listen": "0.0.0.0",
-      "port": ${port},    // ***
+      "port": ${port},    
       "protocol": "vless",
       "settings": {
         "clients": [
           {
-            "id": "${uuid}",    // ***
+            "id": "${uuid}",   
             "flow": "xtls-rprx-vision"
           }
         ],
@@ -90,10 +86,10 @@ cat > /usr/local/etc/xray/config.json <<-EOF
         "security": "reality",
         "realitySettings": {
           "show": false,
-          "dest": "${domain}:443",    // ***
+          "dest": "${domain}:443",    
           "xver": 0,
-          "serverNames": ["${domain}"],    // ***
-          "privateKey": "${private_key}",    // ***私钥
+          "serverNames": ["${domain}"], 
+          "privateKey": "${private_key}",  
           "shortIds": [""] 
         }
       },

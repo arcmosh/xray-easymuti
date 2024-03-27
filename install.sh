@@ -1,19 +1,5 @@
 # 等待1秒, 避免curl下载脚本的打印与脚本本身的显示冲突, 吃掉了提示用户按回车继续的信息
 sleep 1
-
-echo -e "                     _ ___                   \n ___ ___ __ __ ___ _| |  _|___ __ __   _ ___ \n|-_ |_  |  |  |-_ | _ |   |- _|  |  |_| |_  |\n|___|___|  _  |___|___|_|_|___|  _  |___|___|\n        |_____|               |_____|        "
-red='\e[91m'
-green='\e[92m'
-yellow='\e[93m'
-magenta='\e[95m'
-cyan='\e[96m'
-none='\e[0m'
-_red() { echo -e ${red}$*${none}; }
-_green() { echo -e ${green}$*${none}; }
-_yellow() { echo -e ${yellow}$*${none}; }
-_magenta() { echo -e ${magenta}$*${none}; }
-_cyan() { echo -e ${cyan}$*${none}; }
-
 error() {
     echo -e "\n$red 输入错误! $none\n"
 }
@@ -22,13 +8,6 @@ pause() {
     read -rsp "$(echo -e "按 $green Enter 回车键 $none 继续....或按 $red Ctrl + C $none 取消.")" -d $'\n'
     echo
 }
-
-# 说明
-echo
-echo -e "$yellow此脚本仅兼容于Debian 10+系统. 如果你的系统不符合,请Ctrl+C退出脚本$none"
-echo -e "可以去 ${cyan}https://github.com/crazypeace/xray-vless-reality${none} 查看脚本整体思路和关键命令, 以便针对你自己的系统做出调整."
-echo -e "有问题加群 ${cyan}https://t.me/+ISuvkzFGZPBhMzE1${none}"
-echo "----------------------------------------------------------------"
 
 uuidSeed=$(curl -sL https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')$(cat /proc/sys/kernel/hostname)$(cat /etc/timezone)
 default_uuid=$(curl -sL https://www.uuidtools.com/api/generate/v3/namespace/ns:dns/name/${uuidSeed} | grep -oP '[^-]{8}-[^-]{4}-[^-]{4}-[^-]{4}-[^-]{12}')
@@ -117,9 +96,6 @@ if [[ -n $uuid ]]; then
 fi
 
 # 打开BBR
-echo
-echo -e "$yellow打开BBR$none"
-echo "----------------------------------------------------------------"
 sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
 sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 echo "net.ipv4.tcp_congestion_control = bbr" >>/etc/sysctl.conf
@@ -265,9 +241,6 @@ if [[ -z $domain ]]; then
 fi
 
 # 配置config.json
-echo
-echo -e "$yellow 配置 /usr/local/etc/xray/config.json $none"
-echo "----------------------------------------------------------------"
 cat > /usr/local/etc/xray/config.json <<-EOF
 { // VLESS + Reality
   "log": {
@@ -312,31 +285,6 @@ cat > /usr/local/etc/xray/config.json <<-EOF
       "protocol": "freedom",
       "tag": "direct"
     },
-// [outbound]
-{
-    "protocol": "freedom",
-    "settings": {
-        "domainStrategy": "UseIPv4"
-    },
-    "tag": "force-ipv4"
-},
-{
-    "protocol": "freedom",
-    "settings": {
-        "domainStrategy": "UseIPv6"
-    },
-    "tag": "force-ipv6"
-},
-{
-    "protocol": "socks",
-    "settings": {
-        "servers": [{
-            "address": "127.0.0.1",
-            "port": 40000 //warp socks5 port
-        }]
-     },
-    "tag": "socks5-warp"
-},
     {
       "protocol": "blackhole",
       "tag": "block"
@@ -354,22 +302,6 @@ cat > /usr/local/etc/xray/config.json <<-EOF
   "routing": {
     "domainStrategy": "IPIfNonMatch",
     "rules": [
-// [routing-rule]
-//{
-//     "type": "field",
-//     "domain": ["geosite:google", "geosite:openai"],  // ***
-//     "outboundTag": "force-ipv6"  // force-ipv6 // force-ipv4 // socks5-warp
-//},
-{
-     "type": "field",
-     "domain": ["geosite:cn"],  // ***
-     "outboundTag": "force-ipv6"  // force-ipv6 // force-ipv4 // socks5-warp // blocked
-},
-{
-     "type": "field",
-     "ip": ["geoip:cn"],  // ***
-     "outboundTag": "force-ipv6"  // force-ipv6 // force-ipv4 // socks5-warp // blocked
-},
       {
         "type": "field",
         "ip": ["geoip:private"],
@@ -430,43 +362,3 @@ echo "以下两个二维码完全一样的内容" >> ~/_vless_reality_url_
 qrencode -t UTF8 $vless_reality_url >> ~/_vless_reality_url_
 qrencode -t ANSI $vless_reality_url >> ~/_vless_reality_url_
 
-# 如果是 IPv6 小鸡，用 WARP 创建 IPv4 出站
-if [[ $netstack == "6" ]]; then
-    echo
-    echo -e "$yellow这是一个 IPv6 小鸡，用 WARP 创建 IPv4 出站$none"
-    echo "Telegram电报是直接访问IPv4地址的, 需要IPv4出站的能力"
-    echo -e "如果WARP安装不顺利, 请在命令行执行${cyan} bash <(curl -L https://ghproxy.crazypeace.workers.dev/https://github.com/crazypeace/warp.sh/raw/main/warp.sh) 4 ${none}"
-    echo "----------------------------------------------------------------"
-    pause
-
-    # 安装 WARP IPv4
-    bash <(curl -L git.io/warp.sh) 4
-
-    # 重启 Xray
-    echo
-    echo -e "$yellow重启 Xray$none"
-    echo "----------------------------------------------------------------"
-    service xray restart
-
-# 如果是 IPv4 小鸡，用 WARP 创建 IPv6 出站
-elif  [[ $netstack == "4" ]]; then
-    echo
-    echo -e "$yellow这是一个 IPv4 小鸡，用 WARP 创建 IPv6 出站$none"
-    echo -e "有些热门小鸡用原生的IPv4出站访问Google需要通过人机验证, 可以通过修改config.json指定google流量走WARP的IPv6出站解决"
-    echo -e "群组: ${cyan} https://t.me/+ISuvkzFGZPBhMzE1 ${none}"
-    echo -e "教程: ${cyan} https://zelikk.blogspot.com/2022/03/racknerd-v2ray-cloudflare-warp--ipv6-google-domainstrategy-outboundtag-routing.html ${none}"
-    echo -e "视频: ${cyan} https://youtu.be/Yvvm4IlouEk ${none}"
-    echo -e "如果WARP安装不顺利, 请在命令行执行${cyan} bash <(curl -L https://ghproxy.crazypeace.workers.dev/https://github.com/crazypeace/warp.sh/raw/main/warp.sh) 6 ${none}"
-    echo "----------------------------------------------------------------"
-    pause
-
-    # 安装 WARP IPv6
-    bash <(curl -L git.io/warp.sh) 6
-
-    # 重启 Xray
-    echo
-    echo -e "$yellow重启 Xray$none"
-    echo "----------------------------------------------------------------"
-    service xray restart
-
-fi

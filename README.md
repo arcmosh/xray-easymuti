@@ -16,4 +16,8 @@ apt install -y curl
 bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh)
 ```
 
+# 二手安装（已知uuid）
+```
+bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh) YOUR_UUID
+```
 # 综上所述我是一个懒逼

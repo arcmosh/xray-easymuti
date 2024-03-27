@@ -20,13 +20,14 @@ if [[ -n ${1} ]]; then
     uuid=${1}
 fi
 
-# 将UUID转换为16进制并计算其哈希值
-hash=$(echo -n "$uuid" | md5sum | awk '{print $1}')
-decimal_hash=$((16#$hash))
+# 获取UUID的前8个字符
+uuid_short=$(echo "$uuid" | head -c 8)
+
+# 将UUID转换为10进制
+decimal_uuid=$((16#$uuid_short))
 
 # 计算端口号（确保在有效范围内）
-vmessport=$((decimal_hash % 63535 + 2000))
-
+vmessport=$((decimal_uuid % 8000 + 2000)) 
 
 # 打印变量值
 echo "UUID: $uuid"
@@ -68,6 +69,21 @@ cat > /usr/local/etc/xray/config.json <<-EOF
     "loglevel": "error"
   },
   "inbounds": [
+    {
+        "listen": "0.0.0.0",
+        "port": ${vmessport},
+        "protocol": "vmess",
+        "settings": {
+            "clients": [
+                {
+                    "id": "${uuid}"
+                }
+            ]
+        },
+        "streamSettings": {
+            "network": "tcp"
+        }
+    },
     {
       "listen": "0.0.0.0",
       "port": ${port},    
@@ -125,20 +141,17 @@ EOF
 service xray restart
 
 echo "---------- VLESS Reality URL ----------"
-vless_reality_url="vless://${uuid}@${ip}:${port}?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&sni=${domain}&fp=${fingerprint}&pbk=${public_key}&sid=${shortid}&spx=${spiderx}&#VLESS_R_${ip}"
+vless_reality_url="vless://${uuid}@${ip}:${port}?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&sni=${domain}&fp=${fingerprint}&pbk=${public_key}&sid=${shortid}&spx=${spiderx}&#Reality_${ip}_$(date +%H%M)"
 echo -e "${vless_reality_url}"
 echo
-sleep 3
-echo "以下两个二维码完全一样的内容"
-qrencode -t UTF8 $vless_reality_url
-qrencode -t ANSI $vless_reality_url
-echo
-echo "---------- END -------------"
+
+echo "---------- VMess URL ----------"
+vmess_url='{"add":"${ip}","aid":"0","alpn":"","fp":"","host":"","id":"${uuid}","net":"tcp","path":"","port":"${vmessport}","ps":"Reality_${ip}_$(date +%H%M)","scy":"auto","sni":"","tls":"","type":"","v":"2"}'
+echo -e "${vless_reality_url}"
+
 echo "以上节点信息保存在 ~/_vless_reality_url_ 中"
 
 # 节点信息保存到文件中
 echo $vless_reality_url > ~/_vless_reality_url_
-echo "以下两个二维码完全一样的内容" >> ~/_vless_reality_url_
-qrencode -t UTF8 $vless_reality_url >> ~/_vless_reality_url_
-qrencode -t ANSI $vless_reality_url >> ~/_vless_reality_url_
+
 

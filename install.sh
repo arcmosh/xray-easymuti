@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # fakeSNI
-domain=update.cloud.2d585.cdn.bitdefender.net
+domain="update.cloud.2d585.cdn.bitdefender.net"
 
 # 设置reality端口号
 port=443

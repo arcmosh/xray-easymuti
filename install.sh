@@ -132,27 +132,25 @@ EOF
 # 重启 Xray
 service xray restart
 
-echo "---------- VLESS Reality URL ----------"
+# 链接生成
 vless_reality_url="vless://${uuid}@${ip}:${port}?flow=xtls-rprx-vision&encryption=none&type=tcp&security=reality&sni=${domain}&fp=${fingerprint}&pbk=${public_key}&sid=${shortid}&spx=${spiderx}&#Reality_${ip}_$(date +%H%M)"
-echo -e "${vless_reality_url}"
-echo
-
-echo "---------- Vmess URL ----------"
 temp_url='{"add":"IP","aid":"0","alpn":"","fp":"","host":"","id":"UUID","net":"tcp","path":"","port":"VMESSPORT","ps":"Vmess_IP_TIME","scy":"auto","sni":"","tls":"","type":"","v":"2"}'
 o_vmess_url=$(sed -e "s/IP/${ip}/g" \
                    -e "s/UUID/${uuid}/g" \
                    -e "s/VMESSPORT/${vmessport}/g" \
                    -e "s/TIME/$(date +%H%M)/g" <<< "${temp_url}")
-
 vmess_url=$(echo -n "${o_vmess_url}" | base64 -w 0)
 
-echo "vmess://${vmess_url}"
-
 # 节点信息保存到文件中
-echo $vless_reality_url > ~/_xray_url_
+echo "---------- VLESS Reality URL ----------" > ~/_xray_url_
+echo $vless_reality_url >> ~/_xray_url_
 echo  >> ~/_xray_url_
+echo "---------- Vmess URL ----------" >> ~/_xray_url_
 echo "vmess://${vmess_url}" >> ~/_xray_url_
+echo >> ~/_xray_url_
+echo "以上节点信息保存在 ~/_xray_url_ 中, 日后用 cat _xray_url_ 查看" >> ~/_xray_url_
+echo >> ~/_xray_url_
+echo "若你重装本机系统，可以使用下面的脚本恢复到相同配置" >> ~/_xray_url_
+echo "bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh) ${uuid}" >> ~/_xray_url_
 
-echo "以上节点信息保存在 ~/_xray_url_ 中, 用 cat _xray_url_ 查看"
-
-echo "若你重装本机系统，可以使用下面的脚本恢复到相同配置 \n bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh) ${uuid} "
+cat ~/_xray_url_

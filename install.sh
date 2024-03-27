@@ -29,10 +29,6 @@ decimal_uuid=$((16#$uuid_short))
 # 计算端口号（确保在有效范围内）
 vmessport=$((decimal_uuid % 8000 + 2000)) 
 
-# 准备工作
-apt update
-apt install -y curl sudo jq qrencode
-
 # 安装Xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 

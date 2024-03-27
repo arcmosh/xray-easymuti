@@ -25,13 +25,7 @@ apt update
 apt install -y curl sudo jq qrencode
 
 # Xray官方脚本 安装最新版本
-echo
-echo -e "${yellow}官方脚本安装最新版本$none"
-echo "----------------------------------------------------------------"
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
-
-# 更新 geodata
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install-geodata
 
 # 如果脚本带参数执行的, 要在安装了xray之后再生成默认私钥公钥shortID
 if [[ -n $uuid ]]; then
@@ -45,13 +39,6 @@ if [[ -n $uuid ]]; then
 
   #ShortID
   shortid=$(echo -n ${uuid} | sha1sum | head -c 16)
-  
-  echo
-  echo "私钥公钥要在安装xray之后才可以生成"
-  echo -e "$yellow 私钥 (PrivateKey) = ${cyan}${private_key}${none}"
-  echo -e "$yellow 公钥 (PublicKey) = ${cyan}${public_key}${none}"
-  echo -e "$yellow ShortId = ${cyan}${shortid}${none}"
-  echo "----------------------------------------------------------------"
 fi
 
 # 打开BBR
@@ -62,9 +49,6 @@ echo "net.core.default_qdisc = fq" >>/etc/sysctl.conf
 sysctl -p >/dev/null 2>&1
 
 # 配置 VLESS_Reality 模式, 需要:端口, UUID, x25519公私钥, 目标网站
-echo
-echo -e "$yellow配置 VLESS_Reality 模式$none"
-echo "----------------------------------------------------------------"
 
 # 网络栈
 if [[ -z $netstack ]]; then
@@ -73,131 +57,21 @@ if [[ -z $netstack ]]; then
   echo "如果你不懂这段话是什么意思, 请直接回车"
   read -p "$(echo -e "Input ${cyan}4${none} for IPv4, ${cyan}6${none} for IPv6:") " netstack
 
-  # 本机IP
-  if [[ $netstack == "4" ]]; then
-      ip=$(curl -4s https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')
-  elif [[ $netstack == "6" ]]; then
-      ip=$(curl -6s https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')
-  else
-      ip=$(curl -s https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')
-      if [[ -z $(echo -n ${ip} | sed -E 's/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})//g') ]]; then
-        netstack=4
-      else
-        netstack=6
-      fi      
-  fi
-fi
+# 本机IP
+    ip=$(curl -4s https://www.cloudflare.com/cdn-cgi/trace | grep -oP 'ip=\K.*$')
 
 # 端口
-if [[ -z $port ]]; then
-  default_port=443
-  while :; do
-    read -p "$(echo -e "请输入端口 [${magenta}1-65535${none}] Input port (默认Default ${cyan}${default_port}$none):")" port
-    [ -z "$port" ] && port=$default_port
-    case $port in
-    [1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
-      echo
-      echo
-      echo -e "$yellow 端口 (Port) = ${cyan}${port}${none}"
-      echo "----------------------------------------------------------------"
-      echo
-      break
-      ;;
-    *)
-      error
-      ;;
-    esac
-  done
-fi
+port=443
 
-# Xray UUID
-if [[ -z $uuid ]]; then
-  while :; do
-    echo -e "请输入 "$yellow"UUID"$none" "
-    read -p "$(echo -e "(默认ID: ${cyan}${default_uuid}$none):")" uuid
-    [ -z "$uuid" ] && uuid=$default_uuid
-    case $(echo -n $uuid | sed -E 's/[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}//g') in
-    "")
-        echo
-        echo
-        echo -e "$yellow UUID = $cyan$uuid$none"
-        echo "----------------------------------------------------------------"
-        echo
-        break
-        ;;
-    *)
-        error
-        ;;
-    esac
-  done
-fi
 
 # x25519公私钥
-if [[ -z $private_key ]]; then
-  # 私钥种子
-  private_key=$(echo -n ${uuid} | md5sum | head -c 32 | base64 -w 0 | tr '+/' '-_' | tr -d '=')
 
-  tmp_key=$(echo -n ${private_key} | xargs xray x25519 -i)
-  default_private_key=$(echo ${tmp_key} | awk '{print $3}')
-  default_public_key=$(echo ${tmp_key} | awk '{print $6}')
-
-  echo -e "请输入 "$yellow"x25519 Private Key"$none" x25519私钥 :"
-  read -p "$(echo -e "(默认私钥 Private Key: ${cyan}${default_private_key}$none):")" private_key
-  if [[ -z "$private_key" ]]; then 
-    private_key=$default_private_key
-    public_key=$default_public_key
-  else
-    tmp_key=$(echo -n ${private_key} | xargs xray x25519 -i)
-    private_key=$(echo ${tmp_key} | awk '{print $3}')
-    public_key=$(echo ${tmp_key} | awk '{print $6}')
-  fi
-
-  echo
-  echo 
-  echo -e "$yellow 私钥 (PrivateKey) = ${cyan}${private_key}$none"
-  echo -e "$yellow 公钥 (PublicKey) = ${cyan}${public_key}$none"
-  echo "----------------------------------------------------------------"
-  echo
-fi
 
 # ShortID
-if [[ -z $shortid ]]; then
-  default_shortid=$(echo -n ${uuid} | sha1sum | head -c 16)
-  while :; do
-    echo -e "请输入 "$yellow"ShortID"$none" :"
-    read -p "$(echo -e "(默认ShortID: ${cyan}${default_shortid}$none):")" shortid
-    [ -z "$shortid" ] && shortid=$default_shortid
-    if [[ ${#shortid} -gt 16 ]]; then
-      error
-      continue
-    elif [[ $(( ${#shortid} % 2 )) -ne 0 ]]; then
-      # 字符串包含奇数个字符
-      error
-      continue
-    else
-      # 字符串包含偶数个字符
-      echo
-      echo
-      echo -e "$yellow ShortID = ${cyan}${shortid}$none"
-      echo "----------------------------------------------------------------"
-      echo
-      break
-    fi
-  done
-fi
+
 
 # 目标网站
-if [[ -z $domain ]]; then
-  echo -e "请输入一个 ${magenta}合适的域名${none} Input the domain"
-  read -p "(例如: learn.microsoft.com): " domain
-  [ -z "$domain" ] && domain="learn.microsoft.com"
-
-  echo
-  echo
-  echo -e "$yellow SNI = ${cyan}$domain$none"
-  echo "----------------------------------------------------------------"
-  echo
-fi
+domain=
 
 # 配置config.json
 cat > /usr/local/etc/xray/config.json <<-EOF

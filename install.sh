@@ -3,7 +3,7 @@
 port=443
 fingerprint="ios"
 spiderx=""
-domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "www.cdnetworks.com" "news.un.org" "api.datapacket.com"
+domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "www.cdnetworks.com" "news.un.org" "api.datapacket.com" 
          "yelp.com" "concert.io" "jstor.org" "www.cisco.com" "s0.awsstatic.com" "d1.awsstatic.com" "www.python.org" 
          "www.cosmopolitan.com" "archive.cloudera.com" "www.shopjapan.co.jp" "www.boots.com" "download-installer.cdn.mozilla.net")
 

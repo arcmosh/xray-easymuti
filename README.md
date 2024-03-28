@@ -10,16 +10,20 @@ Xray, VLESS_Reality + Vmess 双协议 极简一键脚本，不罗嗦安装开箱
 # 一键安装
 
 Debian Ubuntu 肯定没问题其他的系统我没试
+
+首先你可能需要准备下环境
 ```
 apt update
 apt install -y curl
 ```
+
+直接运行下面的就行了
 ```
 bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh)
 ```
 
-# 二手安装（已知uuid）
+# 高级安装（自定义主机名或UUID）
 ```
-bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh) YOUR_UUID
+HOST=example.com UUID=xxxxxxxx-xxxx-xxxxxx  bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh)
 ```
 # 综上所述我是一个懒逼

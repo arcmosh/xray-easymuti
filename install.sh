@@ -3,7 +3,7 @@
 port=443
 fingerprint="ios"
 spiderx=""
-domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "www.cdnetworks.com" "news.un.org" 
+domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "www.cdnetworks.com" "news.un.org" "api.datapacket.com"
          "yelp.com" "concert.io" "jstor.org" "www.cisco.com" "s0.awsstatic.com" "d1.awsstatic.com" "www.python.org" 
          "www.cosmopolitan.com" "archive.cloudera.com" "www.shopjapan.co.jp" "www.boots.com" "download-installer.cdn.mozilla.net")
 
@@ -18,7 +18,7 @@ bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release
 uuid_short=$(echo "$UUID" | head -c 8)
 seed=$((16#$uuid_short))
 vmessport=$(($seed % 20000 + 10000)) 
-domain=${domains[$(($seed % 17))]}
+domain=${domains[$(($seed % 18))]}
 
 # 生成私钥公钥
 private_key=$(echo -n ${UUID} | md5sum | head -c 32 | base64 -w 0 | tr '+/' '-_' | tr -d '=')

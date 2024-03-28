@@ -29,7 +29,7 @@ lowest_ping=999
 selected_domain=""
 
 for domain in "${selected_domains_arr[@]}"; do
-    avg_ping=$(ping -c 5 -W 300 $domain | tail -1 | awk -F'/' '{print ($5+0)}')
+    avg_ping=$(ping -c 8 -W 200 $domain | tail -1 | awk -F'/' '{print ($5+0)}')
     # 检查是否超时或丢包
     if [ -z "$avg_ping" ]; then
         avg_ping=999

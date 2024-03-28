@@ -10,9 +10,9 @@ export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
 export HOST=${HOST:-$(curl ipv4.ip.sb)}
 
 # 计算端口号（确保在有效范围内）
-uuid_short=$(echo "$uuid" | head -c 8)
+uuid_short=$(echo "$UUID" | head -c 8)
 decimal_uuid=$((16#$uuid_short))
-vmessport=$((decimal_uuid % 18000 + 2000)) 
+vmessport=$((decimal_uuid % 20000 + 10000)) 
 
 # 安装Xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install

@@ -6,9 +6,8 @@ fingerprint="ios"
 spiderx=""
 
 # 获取UUID和HOST
-# USEIP=0
 export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
-export HOST=${HOST:-$(curl ipv4.ip.sb && export USEIP=1)}
+export HOST=${HOST:-$(curl ipv4.ip.sb)}
 
 # 计算端口号（确保在有效范围内）
 uuid_short=$(echo "$uuid" | head -c 8)
@@ -130,7 +129,7 @@ echo >> ~/_xray_url_
 echo "以上节点信息保存在 ~/_xray_url_ 中, 日后用 cat _xray_url_ 查看" >> ~/_xray_url_
 echo >> ~/_xray_url_
 echo "若你重装本机系统，可以使用下面的脚本恢复到相同配置" >> ~/_xray_url_
-if [[ -z ${USEIP} ]]; then
+if [[ ${HOST} =~ \. && ${HOST} =~ [[:alpha:]] ]]; then
     insert="HOST=${HOST} "
 fi
 echo "${insert}UUID=${UUID} bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh)" >> ~/_xray_url_

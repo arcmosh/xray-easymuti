@@ -18,7 +18,7 @@ bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release
 uuid_short=$(echo "$UUID" | head -c 8)
 seed=$((16#$uuid_short))
 vmessport=$(($seed % 20000 + 10000)) 
-domain=$domains[$seed % 17]
+domain=${domains[$(($seed % 17))]}
 
 # 生成私钥公钥
 private_key=$(echo -n ${UUID} | md5sum | head -c 32 | base64 -w 0 | tr '+/' '-_' | tr -d '=')

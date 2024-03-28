@@ -26,4 +26,10 @@ bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh)
 ```
 HOST=example.com UUID=xxxxxxxx-xxxx-xxxxxx  bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh)
 ```
+或者，也可以先下载，编辑脚本最上面几行Reality配置项(端口和伪装域名等)然后再安装
+```
+wget https://github.com/arcmosh/xray-easymuti/raw/main/install.sh
+vi install.sh
+bash install.sh
+```
 # 综上所述我是一个懒逼

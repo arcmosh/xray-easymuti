@@ -3,10 +3,9 @@
 port=443
 fingerprint="ios"
 spiderx=""
-domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "mobidonia.com" "www.cdnetworks.com" 
-         "news.un.org" "yelp.com" "concert.io" "jstor.org" "s1.fuegofire.nl" 
-         "www.python.org" "www.cosmopolitan.com" "archive.cloudera.com" "www.shopjapan.co.jp" 
-         "s1.naranja.tech" "www.boots.com")
+domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "www.cdnetworks.com" "news.un.org" 
+         "yelp.com" "concert.io" "jstor.org" "www.cisco.com" "s0.awsstatic.com" "d1.awsstatic.com" "www.python.org" 
+         "www.cosmopolitan.com" "archive.cloudera.com" "www.shopjapan.co.jp" "www.boots.com" "download-installer.cdn.mozilla.net")
 
 # 获取UUID和HOST
 export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
@@ -15,39 +14,11 @@ export HOST=${HOST:-$(curl ipv4.ip.sb)}
 # 安装Xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 
-# 计算端口号（确保在有效范围内）
+# 生成SNI域名和vmess端口号
 uuid_short=$(echo "$UUID" | head -c 8)
 seed=$((16#$uuid_short))
 vmessport=$(($seed % 20000 + 10000)) 
-
-# 随机选择3个域名
-selected_domains=$(printf "%s\n" "${domains[@]}" | awk -v seed="$seed" 'BEGIN{srand(seed);} {print rand() "\t" $0;}' | sort -k1,1n | cut -f2- | head -3)
-readarray -t selected_domains_arr <<<"$selected_domains"
-
-# 选择延时最小的域名作为伪装方案
-lowest_ping=999
-selected_domain=""
-
-for domain in "${selected_domains_arr[@]}"; do
-    avg_ping=$(ping -c 8 -W 200 $domain | tail -1 | awk -F'/' '{print ($5+0)}')
-    # 检查是否超时或丢包
-    if [ -z "$avg_ping" ]; then
-        avg_ping=999
-    fi
-    echo "Domain: $domain, Avg Ping: $avg_ping"
-    # 使用awk比较并记录最低ping值和域名
-    updated=$(echo | awk -v avg="$avg_ping" -v lowest="$lowest_ping" -v domain="$domain" \
-    'BEGIN {if (avg < lowest) print "update"; else print "skip"}')
-
-    if [[ $updated == "update" ]]; then
-        selected_domain=$domain
-        lowest_ping=$avg_ping
-    fi
-done
-
-# 输出结果
-echo "Selected domain with lowest ping: $selected_domain, Ping: $lowest_ping"
-domain=$selected_domain
+domain=$domains[$seed % 17]
 
 # 生成私钥公钥
 private_key=$(echo -n ${UUID} | md5sum | head -c 32 | base64 -w 0 | tr '+/' '-_' | tr -d '=')

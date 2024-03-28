@@ -1,7 +1,7 @@
 #!/bin/bash
 # REALITY相关默认设置
 port=443
-fingerprint="ios"
+fingerprint="firefox"
 spiderx=""
 domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "www.cdnetworks.com" "news.un.org" "api.datapacket.com" 
          "yelp.com" "concert.io" "jstor.org" "www.cisco.com" "s0.awsstatic.com" "d1.awsstatic.com" "www.python.org" 

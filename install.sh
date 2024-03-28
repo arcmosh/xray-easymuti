@@ -6,9 +6,9 @@ fingerprint="ios"
 spiderx=""
 
 # 获取UUID和HOST
-USEIP=0
+# USEIP=0
 export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
-export HOST=${HOST:-$(curl ipv4.ip.sb && USEIP=1)}
+export HOST=${HOST:-$(curl ipv4.ip.sb && export USEIP=1)}
 
 # 计算端口号（确保在有效范围内）
 uuid_short=$(echo "$uuid" | head -c 8)

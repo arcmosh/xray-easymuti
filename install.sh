@@ -1,7 +1,7 @@
 #!/bin/bash
 # REALITY相关默认设置
 port=443
-fingerprint="firefox"
+fingerprint="chrome"
 spiderx=""
 domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "www.cdnetworks.com" "news.un.org" "api.datapacket.com" 
          "yelp.com" "concert.io" "jstor.org" "www.cisco.com" "s0.awsstatic.com" "d1.awsstatic.com" "www.python.org" 
@@ -17,7 +17,7 @@ bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release
 # 生成SNI域名和vmess端口号
 uuid_short=$(echo "$UUID" | head -c 8)
 seed=$((16#$uuid_short))
-vmessport=$(($seed % 20000 + 10000)) 
+vmessport=$(($seed % 8000 + 2000)) 
 domain=${domains[$(($seed % 18))]}
 
 # 生成私钥公钥
@@ -127,6 +127,7 @@ echo "---------- VLESS Reality URL ----------" > ~/_xray_url_
 echo $vless_reality_url >> ~/_xray_url_
 echo  >> ~/_xray_url_
 echo "---------- Vmess URL ----------" >> ~/_xray_url_
+echo "${HOST}:${vmessport}" >> ~/_xray_url_
 echo "vmess://${vmess_url}" >> ~/_xray_url_
 echo >> ~/_xray_url_
 echo "以上节点信息保存在 ~/_xray_url_ 中, 日后用 cat _xray_url_ 查看" >> ~/_xray_url_

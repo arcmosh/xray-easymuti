@@ -33,4 +33,3 @@ wget https://github.com/arcmosh/xray-easymuti/raw/main/install.sh
 vi install.sh
 bash install.sh
 ```
-# 综上所述我是一个懒逼

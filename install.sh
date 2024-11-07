@@ -144,9 +144,7 @@ cat > /usr/local/etc/xray/config.json <<-EOF
   "dns": {
     "servers": [
       "8.8.8.8",
-      "1.1.1.1",
-      "2001:4860:4860::8888",
-      "localhost"
+      "1.1.1.1"
     ]
   },
   "routing": {
@@ -180,7 +178,7 @@ if [ "$1" == "-g" ]; then
          echo >> ~/_xray_url_
          echo "已启用宾客数据" >> ~/_xray_url_
          for i in "${!filtered_numbers[@]}"; do
-                 echo "宾客${i} 凭证UUID ${guest_hash[$i]}" >> ~/_xray_url_
+                 echo "宾客${filtered_numbers[i]} UUID凭证 ${guest_hash[$i]}" >> ~/_xray_url_
          done
 fi
 

@@ -11,6 +11,51 @@ domains=("www.mitsubishi.com" "updates.cdn-apple.com" "gadebate.un.org" "www.cdn
 export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
 export HOST=${HOST:-$(curl ipv4.ip.sb)}
 
+# 启用多用户
+if [ "$1" == "-g" ]; then
+    # 初始化数组
+    numbers=(0 1 2 3 4 5 6 7 8 9)
+
+    # 检查是否有删除特定数字的请求
+    if [[ -n "$2" ]]; then
+        # 去重并过滤无效字符，只保留0-9之间的数字
+        delete_list=$(echo "$2" | grep -o '[0-9]' | tr -s ' ' | tr -d '\n' | fold -w1 | sort -u | tr -d '\n')
+
+        # 删除数组中的指定元素
+        for num in $(echo "$delete_list" | grep -o .); do
+            numbers=("${numbers[@]/$num}")
+        done
+
+        # 移除空元素，形成新的数组
+        filtered_numbers=()
+        for num in "${numbers[@]}"; do
+            if [[ -n "$num" ]]; then
+                filtered_numbers+=("$num")
+            fi
+        done
+    else
+        # 如果没有删除指定数字，直接使用原始数组
+        filtered_numbers=("${numbers[@]}")
+    fi
+
+    # 生成新的字符串数组，将 hash 值前16位存入 guest_hash 数组中
+    guest_hash=()
+    for num in "${filtered_numbers[@]}"; do
+        hash=$(echo -n "${UUID}${num}" | md5sum | awk '{print $1}' | cut -c 1-16)
+        guest_hash+=("$hash")
+    done
+
+    guest_vless=""
+    for hash in "${guest_hash[@]}"; do
+        guest_vless+='{ "id": "'${hash}'","flow": "xtls-rprx-vision" },'
+    done
+
+    guest_vmess=""
+    for hash in "${guest_hash[@]}"; do
+        guest_vmess+='{ "id": "'${hash}'" },'
+    done
+fi
+
 # 安装Xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 
@@ -48,6 +93,7 @@ cat > /usr/local/etc/xray/config.json <<-EOF
         "protocol": "vmess",
         "settings": {
             "clients": [
+            $guest_vmess
                 {
                     "id": "${UUID}"
                 }
@@ -63,6 +109,7 @@ cat > /usr/local/etc/xray/config.json <<-EOF
       "protocol": "vless",
       "settings": {
         "clients": [
+        $guest_vless
           {
             "id": "${UUID}",   
             "flow": "xtls-rprx-vision"
@@ -97,10 +144,7 @@ cat > /usr/local/etc/xray/config.json <<-EOF
   "dns": {
     "servers": [
       "8.8.8.8",
-      "8.8.4.4",
-      "2001:4860:4860::8888",
-      "2606:4700:4700::1111",
-      "localhost"
+      "1.1.1.1"
     ]
   },
   "routing": {
@@ -129,6 +173,15 @@ echo  >> ~/_xray_url_
 echo "---------- Vmess URL 建议中转使用----------" >> ~/_xray_url_
 echo "目标地址:端口号 ${HOST}:${vmessport}" >> ~/_xray_url_
 echo "vmess://${vmess_url}" >> ~/_xray_url_
+
+if [ "$1" == "-g" ]; then
+         echo >> ~/_xray_url_
+         echo "已启用宾客数据" >> ~/_xray_url_
+         for i in "${!filtered_numbers[@]}"; do
+                 echo "宾客${filtered_numbers[i]} UUID凭证 ${guest_hash[$i]}" >> ~/_xray_url_
+         done
+fi
+
 echo >> ~/_xray_url_
 echo "以上节点信息保存在 ~/_xray_url_ 中, 日后用 cat _xray_url_ 查看" >> ~/_xray_url_
 echo >> ~/_xray_url_
@@ -136,7 +189,7 @@ echo "若你重装本机系统，可以使用下面的脚本恢复到相同配�
 if [[ ${HOST} =~ \. && ${HOST} =~ [[:alpha:]] ]]; then
     insert="HOST=${HOST} "
 fi
-echo "${insert}UUID=${UUID} bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh)" >> ~/_xray_url_
+echo "${insert}UUID=${UUID} bash <(curl -L https://github.com/arcmosh/xray-easymuti/raw/main/install.sh) $1 $2" >> ~/_xray_url_
 
 #展示
 echo
